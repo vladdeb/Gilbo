@@ -1,0 +1,15 @@
+C:\Users\Lenovo\Desktop\BSUIR\!sem5\SPO\lb2\parser\obj\Release\net10.0-windows\GilbMetricParser.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Lenovo\Desktop\BSUIR\!sem5\SPO\lb2\parser\obj\Release\net10.0-windows\GilbMetricParser.AssemblyInfoInputs.cache
+C:\Users\Lenovo\Desktop\BSUIR\!sem5\SPO\lb2\parser\obj\Release\net10.0-windows\GilbMetricParser.AssemblyInfo.cs
+C:\Users\Lenovo\Desktop\BSUIR\!sem5\SPO\lb2\parser\obj\Release\net10.0-windows\GilbMetricParser.csproj.CoreCompileInputs.cache
+C:\Users\Lenovo\Desktop\BSUIR\!sem5\SPO\lb2\parser\bin\Release\net10.0-windows\analyzed_program.go
+C:\Users\Lenovo\Desktop\BSUIR\!sem5\SPO\lb2\parser\bin\Release\net10.0-windows\GilbMetricParser.exe
+C:\Users\Lenovo\Desktop\BSUIR\!sem5\SPO\lb2\parser\bin\Release\net10.0-windows\GilbMetricParser.deps.json
+C:\Users\Lenovo\Desktop\BSUIR\!sem5\SPO\lb2\parser\bin\Release\net10.0-windows\GilbMetricParser.runtimeconfig.json
+C:\Users\Lenovo\Desktop\BSUIR\!sem5\SPO\lb2\parser\bin\Release\net10.0-windows\GilbMetricParser.dll
+C:\Users\Lenovo\Desktop\BSUIR\!sem5\SPO\lb2\parser\bin\Release\net10.0-windows\GilbMetricParser.pdb
+C:\Users\Lenovo\Desktop\BSUIR\!sem5\SPO\lb2\parser\obj\Release\net10.0-windows\GilbMetricParser.dll
+C:\Users\Lenovo\Desktop\BSUIR\!sem5\SPO\lb2\parser\obj\Release\net10.0-windows\refint\GilbMetricParser.dll
+C:\Users\Lenovo\Desktop\BSUIR\!sem5\SPO\lb2\parser\obj\Release\net10.0-windows\GilbMetricParser.pdb
+C:\Users\Lenovo\Desktop\BSUIR\!sem5\SPO\lb2\parser\obj\Release\net10.0-windows\GilbMetricParser.genruntimeconfig.cache
+C:\Users\Lenovo\Desktop\BSUIR\!sem5\SPO\lb2\parser\obj\Release\net10.0-windows\ref\GilbMetricParser.dll

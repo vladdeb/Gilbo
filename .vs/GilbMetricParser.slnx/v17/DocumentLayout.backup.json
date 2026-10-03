@@ -1,0 +1,104 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\SS\\lb2\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{013F535B-004C-7EB9-CBD6-A9FD055FF7AD}|parser\\GilbMetricParser.csproj|d:\\ss\\lb2\\parser\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{013F535B-004C-7EB9-CBD6-A9FD055FF7AD}|parser\\GilbMetricParser.csproj|solutionrelative:parser\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{013F535B-004C-7EB9-CBD6-A9FD055FF7AD}|parser\\GilbMetricParser.csproj|d:\\ss\\lb2\\parser\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{013F535B-004C-7EB9-CBD6-A9FD055FF7AD}|parser\\GilbMetricParser.csproj|solutionrelative:parser\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{013F535B-004C-7EB9-CBD6-A9FD055FF7AD}|parser\\GilbMetricParser.csproj|d:\\ss\\lb2\\parser\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{013F535B-004C-7EB9-CBD6-A9FD055FF7AD}|parser\\GilbMetricParser.csproj|solutionrelative:parser\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{013F535B-004C-7EB9-CBD6-A9FD055FF7AD}|parser\\GilbMetricParser.csproj|d:\\ss\\lb2\\parser\\golexer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{013F535B-004C-7EB9-CBD6-A9FD055FF7AD}|parser\\GilbMetricParser.csproj|solutionrelative:parser\\golexer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{013F535B-004C-7EB9-CBD6-A9FD055FF7AD}|parser\\GilbMetricParser.csproj|d:\\ss\\lb2\\parser\\goanalyzer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{013F535B-004C-7EB9-CBD6-A9FD055FF7AD}|parser\\GilbMetricParser.csproj|solutionrelative:parser\\goanalyzer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "GoLexer.cs",
+              "DocumentMoniker": "D:\\SS\\lb2\\parser\\GoLexer.cs",
+              "RelativeDocumentMoniker": "parser\\GoLexer.cs",
+              "ToolTip": "D:\\SS\\lb2\\parser\\GoLexer.cs",
+              "RelativeToolTip": "parser\\GoLexer.cs",
+              "ViewState": "AgIAANMAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-03T09:59:21.137Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "GoAnalyzer.cs",
+              "DocumentMoniker": "D:\\SS\\lb2\\parser\\GoAnalyzer.cs",
+              "RelativeDocumentMoniker": "parser\\GoAnalyzer.cs",
+              "ToolTip": "D:\\SS\\lb2\\parser\\GoAnalyzer.cs",
+              "RelativeToolTip": "parser\\GoAnalyzer.cs",
+              "ViewState": "AgIAACkBAAAAAAAAAAAowB8BAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-03T09:48:27.986Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "MainForm.cs",
+              "DocumentMoniker": "D:\\SS\\lb2\\parser\\MainForm.cs",
+              "RelativeDocumentMoniker": "parser\\MainForm.cs",
+              "ToolTip": "D:\\SS\\lb2\\parser\\MainForm.cs",
+              "RelativeToolTip": "parser\\MainForm.cs",
+              "ViewState": "AgIAAEUBAAAAAAAAAAAEwEYBAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-03T09:52:24.54Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\SS\\lb2\\parser\\Program.cs",
+              "RelativeDocumentMoniker": "parser\\Program.cs",
+              "ToolTip": "D:\\SS\\lb2\\parser\\Program.cs",
+              "RelativeToolTip": "parser\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-03T09:52:07.02Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "MainForm.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
+              "DocumentMoniker": "D:\\SS\\lb2\\parser\\MainForm.cs",
+              "RelativeDocumentMoniker": "parser\\MainForm.cs",
+              "ToolTip": "D:\\SS\\lb2\\parser\\MainForm.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
+              "RelativeToolTip": "parser\\MainForm.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-03T09:51:55.366Z",
+              "EditorCaption": " [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
