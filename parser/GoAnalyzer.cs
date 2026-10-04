@@ -48,38 +48,38 @@ public sealed class Construct
 /// <summary>Результат анализа программы по метрике Джилба.</summary>
 public sealed class AnalysisResult
 {
+    /// <summary>CL — абсолютная сложность (количество условных операторов).</summary>
     public int AbsoluteComplexity { get; set; }
+
+    /// <summary>cl — относительная сложность (CL / общее число операторов).</summary>
     public double RelativeComplexity { get; set; }
+
+    /// <summary>CLI — максимальный уровень вложенности условного оператора.</summary>
     public int MaxNestingLevel { get; set; }
+
+    /// <summary>Общее количество операторов программы.</summary>
     public int TotalOperators { get; set; }
+
     public List<Construct> Constructs { get; } = new();
     public List<string> Warnings { get; } = new();
 }
 
 /// <summary>
-/// Структурный анализатор исходного кода на языке Go.
+/// Расчёт метрики Джилба по абстрактному синтаксическому дереву программы.
+///
+/// CL  — абсолютная сложность: количество условных операторов.
+///       Условными считаются операторы ветвления (if / else if) и циклы
+///       (for во всех формах). Оператор множественного выбора switch/select
+///       с n ветвями эквивалентен (n - 1) условным операторам.
+/// cl  — относительная сложность: CL / (общее число операторов).
+/// CLI — максимальный уровень вложенности условного оператора.
 /// </summary>
 public static class GoAnalyzer
 {
-    // Какие токены начинают оператор (используется для подсчёта общего числа операторов).
-    private static readonly HashSet<string> StatementKeywords = new(StringComparer.Ordinal)
-    {
-        "return", "if", "for", "switch", "select", "go", "defer",
-        "break", "continue", "goto", "fallthrough", "var", "const",
-    };
-
-    // Если предыдущий токен — один из этих, текущий токен не начинает новый оператор.
-    private static readonly HashSet<string> ContinuationTokens = new(StringComparer.Ordinal)
-    {
-        "&&", "||", "+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "&^",
-        "==", "!=", "<", "<=", ">", ">=", "=", ":=", "+=", "-=", "*=", "/=",
-        "%=", "&=", "|=", "^=", ".", ",", "(", "[",
-    };
-
     public static AnalysisResult Analyze(string source)
     {
         var result = new AnalysisResult();
-        var tokens = GoLexer.Tokenize(source);
+        List<Token> tokens = GoLexer.Tokenize(source);
 
         if (tokens.Count == 0)
         {
@@ -87,8 +87,12 @@ public static class GoAnalyzer
             return result;
         }
 
-        result.TotalOperators = CountOperators(tokens);
-        AnalyzeStructure(tokens, result);
+        var parser = new GoParser(tokens);
+        GoFile file = parser.ParseFile();
+        result.Warnings.AddRange(parser.Warnings);
+
+        var calculator = new MetricVisitor(result);
+        calculator.Run(file);
 
         result.RelativeComplexity = result.TotalOperators > 0
             ? (double)result.AbsoluteComplexity / result.TotalOperators
@@ -97,364 +101,135 @@ public static class GoAnalyzer
         if (result.TotalOperators == 0)
             result.Warnings.Add("Не удалось подсчитать операторы программы (cl не определена).");
 
+        result.Constructs.Sort((a, b) => a.Line.CompareTo(b.Line));
         return result;
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    //  Структурный анализ: поиск ветвлений и вычисление CL / CLI
-    // ─────────────────────────────────────────────────────────────────────
-
-    private sealed class Frame
+    /// <summary>Обход AST и вычисление CL, CLI и общего числа операторов.</summary>
+    private sealed class MetricVisitor
     {
-        public bool IsControlBody;
-        public bool IsCaseContainer;
+        private readonly AnalysisResult _result;
+        private int _cl;
+        private int _cli;
+        private int _operators;
 
-        /// <summary>Тело if / else if / else — участвует в завершении цепочки ветвлений.</summary>
-        public bool IsIfBranch;
+        public MetricVisitor(AnalysisResult result) => _result = result;
 
-        public int SavedControlDepth;
-    }
-
-    private sealed class ChainContext
-    {
-        public int RootDepth;    // глубина, на которую нужно вернуться при завершении цепочки
-        public int BranchDepth;  // глубина текущей ветви цепочки
-    }
-
-    private sealed class CaseContext
-    {
-        public int BraceDepth;
-        public int Count;
-        public Construct? Owner;
-        public int BaseDepth;
-    }
-
-    private static void AnalyzeStructure(List<Token> tokens, AnalysisResult result)
-    {
-        int controlDepth = 0;   // число открытых тел управляющих конструкций
-        int braceDepth = 0;     // глобальная глубина фигурных скобок
-        int cl = 0;
-        int cli = 0;
-
-        var frames = new Stack<Frame>();
-        var caseStack = new Stack<CaseContext>();
-        var chainStack = new Stack<ChainContext>();
-
-        string? pending = null;          // какая конструкция ожидает своё тело
-        int pendingBase = 0;             // controlDepth в момент ключевого слова
-        Construct? pendingConstruct = null;
-        bool pendingElse = false;        // предыдущий значимый токен — else
-        Token? prev = null;
-
-        for (int i = 0; i < tokens.Count; i++)
+        public void Run(GoFile file)
         {
-            Token t = tokens[i];
-            Token? p = prev;
-            bool afterElse = pendingElse;
-            pendingElse = false;
-
-            if (t.Text == "{")
+            foreach (GoDecl decl in file.Decls)
             {
-                braceDepth++;
-
-                if (pending != null && IsBodyBrace(p))
-                {
-                    // Это тело управляющей конструкции.
-                    frames.Push(new Frame
-                    {
-                        IsControlBody = true,
-                        IsIfBranch = pending == "if",
-                        SavedControlDepth = controlDepth,
-                    });
-                    controlDepth++;
-
-                    if (pending is "switch" or "typeswitch" or "select")
-                    {
-                        var ctx = new CaseContext
-                        {
-                            BraceDepth = braceDepth,
-                            Count = 0,
-                            Owner = pendingConstruct,
-                            BaseDepth = pendingBase,
-                        };
-                        caseStack.Push(ctx);
-                        frames.Peek().IsCaseContainer = true;
-                    }
-
-                    pending = null;
-                    pendingConstruct = null;
-                }
-                else if (afterElse && chainStack.Count > 0)
-                {
-                    // Тело ветви else: наращивает уровень вложенности и
-                    // завершает цепочку после закрытия.
-                    ChainContext ctx = chainStack.Peek();
-                    ctx.BranchDepth += 1;
-                    controlDepth = ctx.BranchDepth;
-
-                    frames.Push(new Frame
-                    {
-                        IsControlBody = true,
-                        IsIfBranch = true,
-                        SavedControlDepth = ctx.RootDepth,
-                    });
-                }
-                else
-                {
-                    frames.Push(new Frame { IsControlBody = false, SavedControlDepth = controlDepth });
-                }
-            }
-            else if (t.Text == "}")
-            {
-                braceDepth--;
-
-                if (frames.Count > 0)
-                {
-                    Frame f = frames.Pop();
-                    controlDepth = f.SavedControlDepth;
-
-                    if (f.IsCaseContainer && caseStack.Count > 0)
-                    {
-                        CaseContext ctx = caseStack.Pop();
-                        FinalizeChoice(ctx, result, ref cl, ref cli);
-                    }
-
-                    if (f.IsIfBranch)
-                    {
-                        // Цепочка if / else if / else завершается, если далее не следует else.
-                        Token? next = (i + 1 < tokens.Count) ? tokens[i + 1] : null;
-                        if (next == null || next.Text != "else")
-                        {
-                            if (chainStack.Count > 0)
-                            {
-                                ChainContext ctx = chainStack.Pop();
-                                controlDepth = ctx.RootDepth;
-                            }
-                        }
-                    }
-                }
-            }
-            else if (t.Text == "case" || t.Text == "default")
-            {
-                if (caseStack.Count > 0)
-                {
-                    CaseContext ctx = caseStack.Peek();
-                    if (braceDepth == ctx.BraceDepth)
-                        ctx.Count++;
-                }
-            }
-            else if (t.Kind == TokenKind.Keyword && t.Text == "if")
-            {
-                bool isElseIf = p != null && p.Text == "else";
-
-                if (isElseIf && chainStack.Count > 0)
-                {
-                    // Ветвь else if вложена в предыдущую цепочку.
-                    ChainContext ctx = chainStack.Peek();
-                    ctx.BranchDepth += 1;
-                    controlDepth = ctx.BranchDepth;
-                }
-                else
-                {
-                    chainStack.Push(new ChainContext { RootDepth = controlDepth, BranchDepth = controlDepth });
-                }
-
-                var c = new Construct
-                {
-                    Kind = isElseIf ? ConstructKind.ElseIf : ConstructKind.If,
-                    Line = t.Line,
-                    Column = t.Column,
-                    Level = controlDepth + 1,
-                    ClContribution = 1,
-                };
-                cl++;
-                if (c.Level > cli) cli = c.Level;
-                result.Constructs.Add(c);
-
-                pending = "if";
-                pendingBase = controlDepth;
-            }
-            else if (t.Kind == TokenKind.Keyword && t.Text == "for")
-            {
-                (bool hasRange, _) = InspectHeader(tokens, i);
-                var c = new Construct
-                {
-                    Kind = hasRange ? ConstructKind.ForRange : ConstructKind.For,
-                    Line = t.Line,
-                    Column = t.Column,
-                    Level = controlDepth + 1,
-                    ClContribution = 0, // цикл не является условным оператором
-                };
-                result.Constructs.Add(c);
-
-                pending = "for";
-                pendingBase = controlDepth;
-            }
-            else if (t.Kind == TokenKind.Keyword && t.Text == "switch")
-            {
-                (_, bool isTypeSwitch) = InspectHeader(tokens, i);
-                var c = new Construct
-                {
-                    Kind = isTypeSwitch ? ConstructKind.TypeSwitch : ConstructKind.Switch,
-                    Line = t.Line,
-                    Column = t.Column,
-                    Level = controlDepth + 1,
-                    ClContribution = 0, // уточняется при закрытии тела
-                };
-                result.Constructs.Add(c);
-
-                pending = isTypeSwitch ? "typeswitch" : "switch";
-                pendingBase = controlDepth;
-                pendingConstruct = c;
-            }
-            else if (t.Kind == TokenKind.Keyword && t.Text == "select")
-            {
-                var c = new Construct
-                {
-                    Kind = ConstructKind.Select,
-                    Line = t.Line,
-                    Column = t.Column,
-                    Level = controlDepth + 1,
-                    ClContribution = 0,
-                };
-                result.Constructs.Add(c);
-
-                pending = "select";
-                pendingBase = controlDepth;
-                pendingConstruct = c;
+                if (decl is GoFuncDecl f)
+                    VisitBlock(f.Body, 0);
             }
 
-            if (t.Text == "else")
-                pendingElse = true;
-
-            prev = t;
+            _result.AbsoluteComplexity = _cl;
+            _result.MaxNestingLevel = _cli;
+            _result.TotalOperators = _operators;
         }
 
-        if (caseStack.Count > 0)
-            result.Warnings.Add("Обнаружено незакрытое тело switch/select — анализ может быть неполным.");
-        if (frames.Count > 0)
-            result.Warnings.Add("Обнаружены непарные фигурные скобки — структура программы не сбалансирована.");
-        if (pending != null)
-            result.Warnings.Add("У управляющей конструкции не найдено тело — анализ может быть неточным.");
-
-        result.AbsoluteComplexity = cl;
-        result.MaxNestingLevel = cli;
-    }
-
-    /// <summary>
-    /// Завершает обработку оператора множественного выбора: вклад в CL и CLI.
-    /// n ветвей эквивалентны (n - 1) условным операторам с вложенностью (n - 2).
-    /// </summary>
-    private static void FinalizeChoice(CaseContext ctx, AnalysisResult result, ref int cl, ref int cli)
-    {
-        int n = ctx.Count;
-        int contribution = Math.Max(0, n - 1);
-        cl += contribution;
-
-        // Эквивалентная вложенность: (n - 2), но не менее одного уровня.
-        int equivalentLevel = ctx.BaseDepth + Math.Max(1, n - 2);
-
-        if (ctx.Owner != null)
+        private void VisitBlock(GoBlock block, int depth)
         {
-            ctx.Owner.BranchCount = n;
-            ctx.Owner.ClContribution = contribution;
-            ctx.Owner.Level = equivalentLevel;
+            foreach (GoStmt stmt in block.Statements)
+                VisitStmt(stmt, depth);
         }
 
-        if (equivalentLevel > cli) cli = equivalentLevel;
-    }
-
-    /// <summary>Определяет, является ли скобка «{» телом управляющей конструкции.</summary>
-    private static bool IsBodyBrace(Token? prev)
-    {
-        if (prev == null) return true;
-        if (prev.Text == "]" || prev.Text == "}") return false;
-        if (prev.Kind == TokenKind.Keyword && (prev.Text == "struct" || prev.Text == "interface")) return false;
-        return true;
-    }
-
-    /// <summary>
-    /// Просматривает заголовок конструкции (от ключевого слова до открывающей «{»)
-    /// и определяет наличие ключевого слова range или шаблона .(type).
-    /// </summary>
-    private static (bool hasRange, bool isTypeSwitch) InspectHeader(List<Token> tokens, int start)
-    {
-        bool hasRange = false;
-        bool isTypeSwitch = false;
-        int paren = 0;
-        int bracket = 0;
-
-        for (int k = start + 1; k < tokens.Count; k++)
+        private void VisitStmt(GoStmt stmt, int depth)
         {
-            Token t = tokens[k];
-
-            if (t.Text == "(") { paren++; continue; }
-            if (t.Text == "[") { bracket++; continue; }
-            if (t.Text == ")") { paren = Math.Max(0, paren - 1); continue; }
-            if (t.Text == "]") { bracket = Math.Max(0, bracket - 1); continue; }
-
-            if (paren == 0 && bracket == 0 && t.Text == "{")
-                break;
-
-            if (t.Kind == TokenKind.Keyword && t.Text == "range")
-                hasRange = true;
-
-            // Шаблон .(type) — признак type switch.
-            if (t.Text == "(" && k + 3 < tokens.Count &&
-                tokens[k + 1].Text == "." && tokens[k + 2].Text == "type" &&
-                tokens[k + 3].Text == ")")
+            switch (stmt)
             {
-                isTypeSwitch = true;
-            }
+                case GoIfStmt ifs:
+                    VisitIf(ifs, depth, isElseIf: false);
+                    break;
 
-            // Ограничитель, чтобы не уйти слишком далеко.
-            if (paren == 0 && bracket == 0 && (t.Text == ";" || t.Line > tokens[start].Line + 40))
-                break;
+                case GoForStmt fs:
+                    _operators++;
+                    int forLevel = depth + 1;
+                    _cl++;
+                    if (forLevel > _cli) _cli = forLevel;
+                    AddConstruct(fs, fs.IsRange ? ConstructKind.ForRange : ConstructKind.For,
+                        forLevel, 1, 0);
+                    VisitBlock(fs.Body, depth + 1);
+                    break;
+
+                case GoSwitchStmt sw:
+                    VisitSwitch(sw, depth);
+                    break;
+
+                case GoBlockStmt blk:
+                    VisitBlock(blk.Block, depth);
+                    break;
+
+                case GoLabeledStmt lbl:
+                    if (lbl.Inner != null)
+                        VisitStmt(lbl.Inner, depth);
+                    break;
+
+                default:
+                    // Простой оператор, return, break/continue/goto, объявление.
+                    _operators++;
+                    break;
+            }
         }
 
-        return (hasRange, isTypeSwitch);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────
-    //  Подсчёт общего числа операторов программы
-    // ─────────────────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Приближённый подсчёт операторов программы по началам операторов.
-    /// Строки, начинающиеся с ключевого слова-оператора или идентификатора,
-    /// считаются одним оператором (с учётом переносов внутри скобок и
-    /// продолжений выражений).
-    /// </summary>
-    private static int CountOperators(List<Token> tokens)
-    {
-        int operators = 0;
-        int paren = 0;
-        Token? prev = null;
-
-        foreach (Token t in tokens)
+        private void VisitIf(GoIfStmt ifs, int depth, bool isElseIf)
         {
-            bool firstOnLine = prev == null || prev.Line != t.Line;
+            _operators++;
+            int level = depth + 1;
+            _cl++;
+            if (level > _cli) _cli = level;
 
-            if (firstOnLine && paren == 0 && IsCountableToken(t))
-            {
-                bool isContinuation = prev != null && ContinuationTokens.Contains(prev.Text);
-                if (!isContinuation)
-                    operators++;
-            }
+            AddConstruct(ifs, isElseIf ? ConstructKind.ElseIf : ConstructKind.If,
+                level, 1, 0);
 
-            if (t.Text == "(" || t.Text == "[") paren++;
-            else if (t.Text == ")" || t.Text == "]") paren = Math.Max(0, paren - 1);
+            VisitBlock(ifs.Body, depth + 1);
 
-            prev = t;
+            if (ifs.Else is GoIfStmt elseIf)
+                VisitIf(elseIf, depth + 1, isElseIf: true);
+            else if (ifs.Else != null)
+                VisitStmt(ifs.Else, depth + 1);
         }
 
-        return operators;
-    }
+        private void VisitSwitch(GoSwitchStmt sw, int depth)
+        {
+            _operators++;
 
-    private static bool IsCountableToken(Token t)
-    {
-        if (t.Kind == TokenKind.Identifier) return true;
-        if (t.Kind == TokenKind.Keyword) return StatementKeywords.Contains(t.Text);
-        return false;
+            // Условиями считаются ветви case; default — это аналог else.
+            int caseCount = 0;
+            foreach (GoCaseClause clause in sw.Cases)
+                if (!clause.IsDefault)
+                    caseCount++;
+
+            int contribution = caseCount;
+            _cl += contribution;
+
+            // Оператор выбора с k ветвями case эквивалентен цепочке из k
+            // условных операторов if / else if.
+            int equivalentLevel = depth + Math.Max(1, caseCount);
+            if (equivalentLevel > _cli) _cli = equivalentLevel;
+
+            ConstructKind kind = sw.IsSelect
+                ? ConstructKind.Select
+                : sw.IsTypeSwitch ? ConstructKind.TypeSwitch : ConstructKind.Switch;
+
+            AddConstruct(sw, kind, equivalentLevel, contribution, sw.Cases.Count);
+
+            foreach (GoCaseClause clause in sw.Cases)
+                VisitBlock(clause.Body, depth + 1);
+        }
+
+        private void AddConstruct(GoNode node, ConstructKind kind, int level,
+            int contribution, int branchCount)
+        {
+            _result.Constructs.Add(new Construct
+            {
+                Kind = kind,
+                Line = node.Line,
+                Column = node.Column,
+                Level = level,
+                BranchCount = branchCount,
+                ClContribution = contribution,
+            });
+        }
     }
 }

@@ -66,6 +66,8 @@ public sealed class MainForm : Form
 
         var analysisMenu = new ToolStripMenuItem("Анализ");
         analysisMenu.DropDownItems.Add("Выполнить расчёт метрики", null, (_, _) => AnalyzeCurrent());
+        analysisMenu.DropDownItems.Add(new ToolStripSeparator());
+        analysisMenu.DropDownItems.Add("Показать AST (отладка)", null, (_, _) => ShowAst());
 
         menu.Items.Add(fileMenu);
         menu.Items.Add(analysisMenu);
@@ -338,6 +340,64 @@ public sealed class MainForm : Form
 
         //_status.Text = $"Готово. Найдено конструкций: {result.Constructs.Count}. " +
         //               $"CL = {result.AbsoluteComplexity}, cl = {result.RelativeComplexity:F4}, CLI = {result.MaxNestingLevel}.";
+    }
+
+    /// <summary>Отладочная функция: построение и показ AST текущей программы.</summary>
+    private void ShowAst()
+    {
+        string source = _sourceBox.Text;
+        if (string.IsNullOrWhiteSpace(source))
+        {
+            MessageBox.Show(this, "Сначала загрузите программу на языке Go.", "Нет данных",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        List<Token> tokens = GoLexer.Tokenize(source);
+        var parser = new GoParser(tokens);
+        GoFile file = parser.ParseFile();
+
+        var text = new System.Text.StringBuilder();
+        text.AppendLine(GoAstPrinter.Print(file));
+
+        if (parser.Warnings.Count > 0)
+        {
+            text.AppendLine();
+            text.AppendLine("Предупреждения парсера:");
+            foreach (string w in parser.Warnings)
+                text.AppendLine("  • " + w);
+        }
+
+        ShowTextDialog("AST программы (отладка)", text.ToString());
+    }
+
+    private void ShowTextDialog(string title, string text)
+    {
+        var dialog = new Form
+        {
+            Text = title,
+            Width = 980,
+            Height = 720,
+            MinimumSize = new Size(600, 400),
+            StartPosition = FormStartPosition.CenterParent,
+            ShowIcon = false,
+        };
+
+        var box = new TextBox
+        {
+            Multiline = true,
+            ReadOnly = true,
+            WordWrap = false,
+            ScrollBars = ScrollBars.Both,
+            Dock = DockStyle.Fill,
+            Font = new Font("Consolas", 10f),
+            BackColor = Color.White,
+            Text = text,
+        };
+        box.Select(0, 0);
+
+        dialog.Controls.Add(box);
+        dialog.ShowDialog(this);
     }
 
     private void HighlightSelectedLine()

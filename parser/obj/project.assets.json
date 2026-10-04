@@ -14,11 +14,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Lenovo\\Desktop\\BSUIR\\!sem5\\SPO\\lb2\\parser\\GilbMetricParser.csproj",
+      "projectUniqueName": "C:\\Users\\Lenovo\\Desktop\\BSUIR\\!sem5\\SPO\\lb2\\Gilbo\\parser\\GilbMetricParser.csproj",
       "projectName": "GilbMetricParser",
-      "projectPath": "C:\\Users\\Lenovo\\Desktop\\BSUIR\\!sem5\\SPO\\lb2\\parser\\GilbMetricParser.csproj",
+      "projectPath": "C:\\Users\\Lenovo\\Desktop\\BSUIR\\!sem5\\SPO\\lb2\\Gilbo\\parser\\GilbMetricParser.csproj",
       "packagesPath": "C:\\Users\\Lenovo\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Lenovo\\Desktop\\BSUIR\\!sem5\\SPO\\lb2\\parser\\obj\\",
+      "outputPath": "C:\\Users\\Lenovo\\Desktop\\BSUIR\\!sem5\\SPO\\lb2\\Gilbo\\parser\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
