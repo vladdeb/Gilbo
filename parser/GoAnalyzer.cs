@@ -148,7 +148,9 @@ public static class GoAnalyzer
                     break;
 
                 case GoForStmt fs:
-                    _operators++;
+                    // Классический for init; cond; post считается за 3 оператора,
+                    // остальные формы цикла — за один.
+                    _operators += fs.IsThreeClause ? 3 : 1;
                     int forLevel = depth + 1;
                     _cl++;
                     if (forLevel > _cli) _cli = forLevel;

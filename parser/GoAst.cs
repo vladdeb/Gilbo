@@ -56,6 +56,10 @@ public sealed class GoIfStmt : GoStmt
 public sealed class GoForStmt : GoStmt
 {
     public bool IsRange { get; set; }
+
+    /// <summary>Классический цикл for init; cond; post (считается за 3 оператора).</summary>
+    public bool IsThreeClause { get; set; }
+
     public GoBlock Body { get; set; } = new();
 }
 
@@ -320,6 +324,8 @@ public sealed class GoParser
         int headerStart = _pos;
         int bodyIndex = FindHeaderEnd(headerStart);
         node.IsRange = HeaderContainsKeyword(headerStart, bodyIndex, "range");
+        if (!node.IsRange)
+            node.IsThreeClause = CountTopLevelSemicolons(headerStart, bodyIndex) == 2;
 
         _pos = bodyIndex;
         if (Is("{"))
@@ -629,6 +635,22 @@ public sealed class GoParser
             return;
         }
         if (!Eof) Advance();
+    }
+
+    private int CountTopLevelSemicolons(int start, int end)
+    {
+        int semicolons = 0;
+        int paren = 0, bracket = 0;
+        for (int k = start; k < end && k < _tokens.Count; k++)
+        {
+            string s = _tokens[k].Text;
+            if (s == "(") paren++;
+            else if (s == ")") paren = Math.Max(0, paren - 1);
+            else if (s == "[") bracket++;
+            else if (s == "]") bracket = Math.Max(0, bracket - 1);
+            else if (s == ";" && paren == 0 && bracket == 0) semicolons++;
+        }
+        return semicolons;
     }
 
     private bool HeaderContainsKeyword(int start, int end, string keyword)

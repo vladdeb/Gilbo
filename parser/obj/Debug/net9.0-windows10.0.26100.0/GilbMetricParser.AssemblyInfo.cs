@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GilbMetricParser")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4dcb2547dce19cd754683ca16960fdccea73d0a1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d84d222adb5c5843f4ca032f74d4094926eadc7e")]
 [assembly: System.Reflection.AssemblyProductAttribute("GilbMetricParser")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GilbMetricParser")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
