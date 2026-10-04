@@ -106,6 +106,7 @@ public static class GoAnalyzer
         if (result.TotalOperators == 0)
             result.Warnings.Add("Не удалось подсчитать операторы программы (cl не определена).");
 
+        if (result.MaxNestingLevel > 0) result.MaxNestingLevel--;
         result.Constructs.Sort((a, b) => a.Line.CompareTo(b.Line));
         return result;
     }
