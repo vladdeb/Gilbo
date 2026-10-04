@@ -40,9 +40,14 @@ public sealed class Construct
         _ => Kind.ToString(),
     };
 
-    public string Detail => Kind is ConstructKind.Switch or ConstructKind.TypeSwitch or ConstructKind.Select
-        ? $"ветвей: {BranchCount} (CL += {ClContribution})"
-        : $"CL += {ClContribution}";
+    public string Detail => Kind switch
+    {
+        ConstructKind.Switch or ConstructKind.TypeSwitch =>
+            $"ветвей: {BranchCount} (CL += {ClContribution})",
+        ConstructKind.Select =>
+            $"не учитывается (ветвей: {BranchCount})",
+        _ => $"CL += {ClContribution}",
+    };
 }
 
 /// <summary>Результат анализа программы по метрике Джилба.</summary>
@@ -194,6 +199,15 @@ public static class GoAnalyzer
         {
             _operators++;
 
+            // select — не ветвление: в метрике не учитывается, в таблицу
+            // конструкций не попадает и не влияет на уровень вложенности.
+            if (sw.IsSelect)
+            {
+                foreach (GoCaseClause clause in sw.Cases)
+                    VisitBlock(clause.Body, depth);
+                return;
+            }
+
             // Условиями считаются ветви case; default — это аналог else.
             int caseCount = 0;
             foreach (GoCaseClause clause in sw.Cases)
@@ -208,9 +222,7 @@ public static class GoAnalyzer
             int equivalentLevel = depth + Math.Max(1, caseCount);
             if (equivalentLevel > _cli) _cli = equivalentLevel;
 
-            ConstructKind kind = sw.IsSelect
-                ? ConstructKind.Select
-                : sw.IsTypeSwitch ? ConstructKind.TypeSwitch : ConstructKind.Switch;
+            ConstructKind kind = sw.IsTypeSwitch ? ConstructKind.TypeSwitch : ConstructKind.Switch;
 
             AddConstruct(sw, kind, equivalentLevel, contribution, sw.Cases.Count);
 
