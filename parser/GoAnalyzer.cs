@@ -222,17 +222,24 @@ public static class GoAnalyzer
             int contribution = caseCount;
             _cl += contribution;
 
-            // Оператор выбора с k ветвями case эквивалентен цепочке из k
-            // условных операторов if / else if.
+            // Оператор выбора эквивалентен цепочке if / else if: каждая
+            // следующая ветвь case вложена на уровень глубже предыдущей,
+            // поэтому и код в более поздних ветвях глубже.
+            int branchDepth = depth;
+            foreach (GoCaseClause clause in sw.Cases)
+            {
+                if (!clause.IsDefault)
+                    branchDepth++;
+                VisitBlock(clause.Body, branchDepth);
+            }
+
+            // Уровень самого switch — уровень самой глубокой ветви.
             int equivalentLevel = depth + Math.Max(1, caseCount);
             if (equivalentLevel > _cli) _cli = equivalentLevel;
 
             ConstructKind kind = sw.IsTypeSwitch ? ConstructKind.TypeSwitch : ConstructKind.Switch;
 
             AddConstruct(sw, kind, equivalentLevel, contribution, sw.Cases.Count);
-
-            foreach (GoCaseClause clause in sw.Cases)
-                VisitBlock(clause.Body, depth + 1);
         }
 
         private void AddConstruct(GoNode node, ConstructKind kind, int level,

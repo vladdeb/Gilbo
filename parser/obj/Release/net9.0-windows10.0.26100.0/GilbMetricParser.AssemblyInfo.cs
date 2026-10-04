@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GilbMetricParser")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+edbebb9f51fc53a85a30e7a986ac415681b7917d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+814b5c5533fec428a6a82e69fb67227c555f96a2")]
 [assembly: System.Reflection.AssemblyProductAttribute("GilbMetricParser")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GilbMetricParser")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
