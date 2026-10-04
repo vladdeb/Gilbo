@@ -199,22 +199,25 @@ public static class GoAnalyzer
 
         private void VisitSwitch(GoSwitchStmt sw, int depth)
         {
-            _operators++;
-
-            // select — не ветвление: в метрике не учитывается, в таблицу
-            // конструкций не попадает и не влияет на уровень вложенности.
+            // select — не ветвление: в таблицу и метрику сложности не входит,
+            // но как оператор считается.
             if (sw.IsSelect)
             {
+                _operators++;
                 foreach (GoCaseClause clause in sw.Cases)
                     VisitBlock(clause.Body, depth);
                 return;
             }
 
-            // Условиями считаются ветви case; default — это аналог else.
+            // Условиями и операторами считаются ветви case; default — это
+            // аналог else и не считается ни в CL, ни в числе операторов.
             int caseCount = 0;
             foreach (GoCaseClause clause in sw.Cases)
                 if (!clause.IsDefault)
                     caseCount++;
+
+            // Операторами считаются ветви case, а не сам switch и не default.
+            _operators += caseCount;
 
             int contribution = caseCount;
             _cl += contribution;
