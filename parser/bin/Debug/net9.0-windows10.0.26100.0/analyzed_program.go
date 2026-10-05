@@ -20,25 +20,26 @@ func main() {
 			}
 		}
 	}
-
-	switch total {
-	case 1:
-		count++
-	case 2:
-		if count > 3
-		{
-			count := 1000
-		}
-		else
-		{
-			for count < 50
+	if total > 0 {
+		switch total {
+		case 1:
+			count++
+		case 2:
+			if count > 3
 			{
-				count++
+				count := 1000
 			}
+			else
+			{
+				for count < 50
+				{
+					count++
+				}
+			}
+		case 3, 4:
+			count+=5
+		default:
+			count := -1
 		}
-	case 3, 4:
-		count+=5
-	default:
-		count := -1
 	}
 }
